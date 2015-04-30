@@ -1,0 +1,30 @@
+{
+	"config_version": "4",
+	"name": "GATest",
+	"author": "Niraj Shah",
+	"version": "0.1",
+	"platform_version": "v2.2.11",
+	"description": "Test App to demonstrate Google Analytics tracking",
+	"core": {
+		"general": {
+			"logging": {
+				"level": "DEBUG"
+			},
+			"reload": true
+		},
+		"android": {
+			"minimum_version": "15"
+		}
+	},
+	"modules": {
+		"prefs": {
+			"version": "2.1"
+		},
+		"request": {
+			"version": "2.7",
+			"config": {
+				"permissions": []
+			}
+		}
+	}
+}

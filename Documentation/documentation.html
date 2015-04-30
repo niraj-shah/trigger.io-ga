@@ -1,0 +1,270 @@
+<!doctype html>
+<html>
+<head>
+
+  <meta charset="UTF-8">
+  <title>Google Analytics for Trigger.io | Documentation</title>
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<!-- Google Fonts -->
+	<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans:400,300,700">
+
+  <!-- Plugins CSS  -->
+  <link rel="stylesheet" href="assets/magnificpopup/magnific-popup.css">
+  <link rel="stylesheet" href="assets/syntaxhighlighter/styles/shCore.css" />
+  <link rel="stylesheet" href="assets/syntaxhighlighter/styles/shThemeDefault.css" />
+
+	<!-- Documentation CSS -->
+  <link rel="stylesheet" href="assets/style.css">
+
+</head>
+<body>
+
+	<!-- Header -->
+  <div id="header">
+    <h1><strong>Google Analytics for Trigger.io</strong> by <a href="http://www.webniraj.com">WebNiraj</a></h1>
+  </div>
+
+  <!-- Menu -->
+  <div id="doc-menu">
+
+    <ul class="nav">
+			<li class="section active"><span>1</span><a href="#s1">Introduction</a></li>
+			<li class="section"><span>2</span><a href="#s2">Documentation Organisation</a></li>
+			<li class="section"><span>3</span><a href="#s3">Initial Setup</a></li>
+			<li><span>3.1</span><a href="#s3e1">Google Analytics Tracking ID</a></li>
+			<li><span>3.2</span><a href="#s3e2">Add jQuery</a></li>
+			<li><span>3.3</span><a href="#s3e3">Configure the Plugin</a></li>
+			<li class="section"><span>4</span><a href="#s4">Tracking Views and Events</a></li>
+			<li><span>4.1</span><a href="#s4e1">Tracking Screen Views</a></li>
+			<li><span>4.2</span><a href="#s4e2">Tracking Events</a></li>
+			<li class="section"><span>5</span><a href="#s5">Testing</a></li>
+			<li><span>5.1</span><a href="#s5e1">Real-time Data</a></li>
+      <li><span>5.2</span><a href="#s5e2">Aggregated Data</a></li>
+    </ul>
+    
+  </div>
+
+  <!-- Content -->
+  <div id="doc-content" data-spy="scroll" data-target="#menu">
+
+<!-- ===================================================================================-->
+<!-- 1 Introduction -->
+<!-- ===================================================================================-->
+      
+  <div class="intro" id="s1">
+    <div class="vertical">
+      <h1>Google Analytics for Trigger.io <span>v1.0.0</span></h1>
+      <h2>Documentation</h2>
+    </div>
+  </div>
+   
+<!-- ===================================================================================-->
+<!-- 2 Documentation Organisation-->
+<!-- ===================================================================================-->
+
+	<h1 id="s2"><span>2</span>Documentation organisation</h1>
+	
+	<p>The documentation assumes you have already created a Trigger.io mobile application that needs tracking. The documentation will provide a step-by-step guide to help you track your application.</p>
+	
+	<p>This library makes use of the jQuery plugin, so you'll be required to add the library to your application for tracking to work.</p>	
+	
+<!-- ===================================================================================-->
+<!-- 3 Initial Setup-->
+<!-- ===================================================================================-->
+
+	<h1 id="s3"><span>3</span>Initial Setup</h1>
+
+<!-- ===================================================================================-->
+<!-- 3.1 Get Tracking ID-->
+<!-- ===================================================================================-->
+
+	<h2 id="s3e1"><span>3.1</span>Google Analytics Tracking ID</h2>
+	
+	<p>If you don't already have a Google Analytics tracking ID, you should get one from the Google Analytics website:
+  <a href="http://www.google.com/analytics/" target="_blank">http://www.google.com/analytics/</a>.</p> 
+  
+  <p>After creating an account, you'll need to create setup a new "Property" to obtain the Tracking ID. You can use a existing property if you have one, or set a new one up.</p>
+  
+  <p><strong>Note:</strong> It's recommended that you setup a "Mobile app" property instead of a "Website" one. The plugin is designed specifically to work with the "Mobile app" variation.</p>
+  
+  <p class="center"><a href="screenshots/1.png" rel="magnificPopup"><img src="screenshots/1.png" /></a></p>
+  
+  <p>Once the property has been setup, you should have a Tracking ID in the form: <strong>UA-XXXXXXXX-X</strong>. That's all you'll need from Google Analytics at this point.</p>
+
+<!-- ===================================================================================-->
+<!-- 3.2 Add jQuery-->
+<!-- ===================================================================================-->
+
+	<h2 id="s3e2"><span>3.2</span>Add jQuery</h2>
+	
+	<p>
+		If you haven't already included the jQuery library in your code, lets start by adding that.
+		Download the latest version of jQuery from <a href="http://jquery.com/download/" target="_blank">http://jquery.com/download/</a>
+		and add it to your <code>src</code> directory.
+	</p>
+	
+	<p>I usually put all my JavaScript files in the <code>src/js</code> folder, so lets assume you've done the same. After downloading the file, add the following line of code to the <code>head</code> tag in your application:</p>
+	
+	<pre>
+&lt;script type="text/javascript" src="js/jquery-2.1.3.min.js"&gt;&lt;/script&gt;
+	</pre>
+
+<!-- ===================================================================================-->
+<!-- 3.3 Configure Plugins-->
+<!-- ===================================================================================-->
+
+	<h2 id="s3e3"><span>3.3</span>Configure the Plugin</h2>
+	
+	<p>
+	  As part of your application, I assume you have a main JavaScript file (called <code>main.js</code>) that is loaded at start of
+	  the application. In this file, we need to add some JavaScript that will set the Google Tracking ID and a unique tracking number for the viewer.
+	</p>
+	
+	<p><strong>Note</strong>: If you don't already have the <code>prefs</code> and <code>request</code> modules added to your application, please add it. It will used for persistent storage by the plugin and to make Ajax requests.</p>
+	
+	<p>
+	  We need to make use of a few forge API calls to successfully setup the tracker. Lets start by creating a unique user identifier (UUID) for the user.
+	  The identifier should be unique between users and tried to the device. Google achieves this by storing the UUID in a cookie, so we'll use persistence
+	  storage to do the same.
+	</p>
+	
+	<pre>
+// attempt to get uuid
+forge.prefs.get( 'uuid', function( uuid ) {
+  // if we can't find uuid, generate one
+  if ( uuid === null ) {
+    // generate UUID
+    uuid = forge.tools.UUID();
+    // save uuid for future reference
+    forge.prefs.set( 'uuid', uuid );
+  }
+  
+  // setup tracker
+  ga('create', 'UA-XXXXXXXX-Y', uuid, {
+    'name': 'My App',
+    'version': '1.0'
+  } );
+});
+	</pre>
+	
+	<p>
+	  We wrap the code in the <code>forge.prefs.get</code> function so the saved UUID is always obtained (if it exists). If the UUID does not exist, we use the
+	  <code>forge.tools.UUID()</code> function to generate a new UUID, and then save it using <code>forge.prefs.set</code>.
+	</p>
+	
+	<p>
+	  We then call the <code>create</code> function of the tracker to setup your Google Analytics tracking ID and UUID (remember to use your own Google Analytics ID). Optionally, you can also set the application
+	  <code>name</code> and <code>version</code>, which is also sent to Google Analytics - more on this later.
+	</p>
+	
+	<p>
+	  <strong>Note</strong>: This example for creating, storing and retrieving the UUID is provided as an example. If you're using a API or other mechinism that
+	  provides a unique identifier for the device (or user), you are free to replace it. Just remember to pass the unique identifier to the ga('create') function
+	  so Google Analytics can track it as a unique user.
+	</p>
+
+<!-- ===================================================================================-->
+<!-- 4 Working with the Theme-->
+<!-- ===================================================================================-->
+
+	<h1 id="s4"><span>4</span>Tracking Views and Events</h1>
+
+<!-- ===================================================================================-->
+<!-- 4.1 Tracking Screen Views-->
+<!-- ===================================================================================-->
+
+	<h2 id="s4e1"><span>4.1</span>Tracking Screen Views</h2>
+			
+	<p>
+	  Once the plugin has been configured, you can start tracking screenviews and events. To track screenviews, you need to call the <code>ga( 'send' )</code>
+	  function, setting the second parameter to <code>screenview</code>
+	</p>
+	
+	<p>The third and final parameter is the name of the page. For example, the example below is tracking the app loading screen, labeled as <code>App Load</code>:</p>
+	
+	<pre>
+// send screenview tracking data
+ga('send', 'screenview', 'App Load');
+	</pre>
+
+<!-- ===================================================================================-->
+<!-- 4.2 Tracking Events-->
+<!-- ===================================================================================-->
+
+	<h2 id="s4e2"><span>4.2</span>Tracking Events</h2>
+	
+	<p>Tracking events is similar to page views, except you can specify more parameters.</p>
+	
+	<pre>
+// send event
+ga('send', 'event', 'category', 'click', 'label', 'value');
+	</pre>
+	
+	<p>
+	  The second parameter should be set to <code>event</code>. The third parameter is the event category (required), for example a
+	  <code>button</code>, <code>video</code> etc. The fourth parameter is the action type, for example: 
+	  <code>click</code>, <code>swipe</code>, <code>toggle</code> etc. The <code>label</code> should be set to the name of the button, for example <code>Play</code> or <code>Confirm</code> (required).
+	</p>
+	
+	<p>
+		The last parameter (<code>value</code>) is optional, and can be used to indicate a value associated to the event. For example, if you have radio buttons,
+		the value could be used to indicate which radio button was selected.
+	</p>
+	
+<!-- ===================================================================================-->
+<!-- 5 Working with the Theme-->
+<!-- ===================================================================================-->
+
+	<h1 id="s5"><span>5</span>Testing</h1>
+
+<!-- ===================================================================================-->
+<!-- 5.1 Real-time Data-->
+<!-- ===================================================================================-->
+
+	<h2 id="s5e1"><span>5.1</span>Real-time Data</h2>
+			
+	<p>
+	  Once the tracking code has been implemented, you can use Google Analytics' Real-Time dashboard to test your application. Screenviews and events will
+	  show up in the respective sections allowing you to double check that the page names and events are labeled and tracked correctly.
+	</p>
+	
+	<p>The below screenshot shows screenviews tracked in real-time.</p>
+	
+	<p class="center"><a href="screenshots/2.png" rel="magnificPopup"><img src="screenshots/2.png" /></a></p>
+	
+	<p>The below screenshot shows events tracked in real-time.</p>
+	
+	<p class="center"><a href="screenshots/3.png" rel="magnificPopup"><img src="screenshots/3.png" /></a></p>
+	
+<!-- ===================================================================================-->
+<!-- 5.2 Aggregated Data-->
+<!-- ===================================================================================-->
+
+	<h2 id="s5e2"><span>5.1</span>Aggregated Data</h2>
+			
+	<p>
+	  After a few hours, Google Analytics will start to show aggregated data for your application, giving you the ability to slice and filter the tracking data
+	  to suit your purpose.
+	</p>
+	
+	<p>&nbsp;</p>
+  
+
+  <!-- Scripts -->
+  <script src='assets/jquery.min.js'></script>
+	<script src="assets/scrollspy.js"></script>	
+	<script src='assets/jquery.scrollTo.min.js'></script>
+	<script src='assets/jquery.localscroll-1.2.7-min.js'></script>
+	<script src="assets/magnificpopup/jquery.magnific-popup.min.js"></script>
+	<script src="assets/syntaxhighlighter/scripts/shCore.js"></script>
+  <script src="assets/syntaxhighlighter/scripts/shBrushCss.js"></script>
+  <script src="assets/syntaxhighlighter/scripts/shBrushJScript.js"></script>
+  <script src="assets/syntaxhighlighter/scripts/shBrushPhp.js"></script>
+  <script src="assets/syntaxhighlighter/scripts/shBrushXml.js"></script>
+  <script type='text/javascript' src='assets/custom.js'></script>
+
+</body>
+</html>

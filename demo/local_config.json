@@ -1,0 +1,14 @@
+{
+	"general": {},
+	"ios": {
+		"profiles": {
+			"DEFAULT": {}
+		}
+	},
+	"android": {
+		"profiles": {
+			"DEFAULT": {}
+		},
+		"sdk": "/Developers/android-sdk-macosx/"
+	}
+}
